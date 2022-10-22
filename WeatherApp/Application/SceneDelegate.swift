@@ -1,9 +1,3 @@
-//
-//  SceneDelegate.swift
-//  WeatherApp
-//
-//  Created by Руслан Барановский on 22.10.2022.
-//
 
 import UIKit
 

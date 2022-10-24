@@ -52,8 +52,8 @@ class WeatherAppViewModel: UIView, UITextFieldDelegate {
         setupTopContainer()
         setupMainWeatherAppView()
         setupMainConstraints()
-        
-        searchTextField.isHidden = false
+        searchTextField.delegate = self
+        searchTextField.isHidden = true
     }
     
     required init?(coder: NSCoder) {
@@ -134,22 +134,24 @@ class WeatherAppViewModel: UIView, UITextFieldDelegate {
     
     @objc private func searchButtonPressed() {
         if searchTextField.text == "" {
-            searchTextField.alpha = 0.5
+            searchTextField.isHidden = false
         } else {
+            delegate?.userIsTyping(text: searchTextField.text ?? "")
             searchTextField.text = ""
-            searchTextField.alpha = 0
+            searchTextField.endEditing(true)
+            searchTextField.isHidden = true
         }
-        
-        print("Tapped")
     }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         delegate?.userIsTyping(text: searchTextField.text ?? "")
         searchTextField.endEditing(true)
+        searchTextField.isHidden = true
         return true
     }
     
     func textFieldDidEndEditing(_ textField: UITextField) {
+        searchTextField.endEditing(true)
         searchTextField.text = nil
     }
     

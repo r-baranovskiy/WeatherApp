@@ -6,6 +6,7 @@ class WeatherMainViewController: UIViewController, WeatherAppViewModelProtocol {
     //MARK: - Constants
     
     private let weatherViewModel = WeatherAppViewModel()
+    private let weatherManager = WeatherManager()
     private var mainWeatherView = UIView()
     private let backgroundImageView = UIImageView()
     
@@ -30,12 +31,12 @@ class WeatherMainViewController: UIViewController, WeatherAppViewModelProtocol {
         setupConstraints()
     }
     
-    private func userFinishedWritingText(text: String) {
-        print(text)
+    private func searchButtonTapped(text: String) {
+        weatherManager.fetchWeather(cityName: text)
     }
     
     func userIsTyping(text: String) {
-        userFinishedWritingText(text: text)
+        searchButtonTapped(text: text)
     }
     
     

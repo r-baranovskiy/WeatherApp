@@ -10,7 +10,7 @@ struct WeatherModel {
         return String(format: "%.f", cityTemp)
     }
     
-    var conditionName: String? {
+    var conditionName: String {
         switch cityConditionID {
         case 200...232:
             return "cloud.bolt"
@@ -29,7 +29,7 @@ struct WeatherModel {
         default:
             break
         }
-        return nil
+        return "snowflake.slash"
     }
     
 }

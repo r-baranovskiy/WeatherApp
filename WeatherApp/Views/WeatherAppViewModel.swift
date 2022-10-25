@@ -18,7 +18,7 @@ struct ListProvider: PreviewProvider {
 }
 protocol WeatherAppViewModelProtocol: AnyObject {
     
-    func userIsTyping(text: String)
+    func userIsTyping(_ weatcherViewModel: WeatherAppViewModel ,text: String)
 }
 
 class WeatherAppViewModel: UIView, UITextFieldDelegate {
@@ -60,10 +60,10 @@ class WeatherAppViewModel: UIView, UITextFieldDelegate {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func updateUI(temp: Double, cityName: String, conditionID: Int) {
-        temperatureLabel.text = String(format: "%.f", temp)
+    func updateUI(temp: String, cityName: String, conditionImageName: String) {
+        temperatureLabel.text = temp
         cityLabel.text = cityName
-        
+        conditionImageView.image = UIImage(systemName: conditionImageName)
     }
     
     //MARK: - setup MainWeatherAppView
@@ -142,7 +142,7 @@ class WeatherAppViewModel: UIView, UITextFieldDelegate {
         if searchTextField.text == "" {
             searchTextField.isHidden = false
         } else {
-            delegate?.userIsTyping(text: searchTextField.text ?? "")
+            delegate?.userIsTyping(self, text: searchTextField.text ?? "")
             searchTextField.text = ""
             searchTextField.endEditing(true)
             searchTextField.isHidden = true
@@ -150,7 +150,7 @@ class WeatherAppViewModel: UIView, UITextFieldDelegate {
     }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        delegate?.userIsTyping(text: searchTextField.text ?? "")
+        delegate?.userIsTyping(self, text: searchTextField.text ?? "")
         searchTextField.endEditing(true)
         searchTextField.isHidden = true
         return true

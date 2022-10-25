@@ -1,9 +1,6 @@
 import  UIKit
 
-class WeatherMainViewController: UIViewController, WeatherAppViewModelProtocol {
-
-    
-    
+class WeatherMainViewController: UIViewController, WeatherAppViewModelProtocol, WeatherManagerProtocol {
     
     //MARK: - Constants
     
@@ -16,6 +13,7 @@ class WeatherMainViewController: UIViewController, WeatherAppViewModelProtocol {
     
     override func loadView() {
         super.loadView()
+        weatherManager.delegate = self
         mainWeatherView = weatherViewModel.mainWeatherAppView
         backgroundImageView.image = UIImage(named: "background")
     }
@@ -32,17 +30,22 @@ class WeatherMainViewController: UIViewController, WeatherAppViewModelProtocol {
         
         setupConstraints()
     }
+    //ViewModel delegate
     
-    private func searchButtonTapped(request: String) {
-        weatherManager.fetchWeather(cityName: request)
+    func userIsTyping(_ weatcherViewModel: WeatherAppViewModel, text: String) {
+        weatherManager.fetchWeather(cityName: text)
     }
     
-    //View model delegate
+    //WeatherManager delegate
     
-    func userIsTyping(text: String) {
-        searchButtonTapped(request: text)
+    
+    func didUpdateWeather(_ weatherManager: WeatherManager, weatherModel: WeatherModel) {
+        weatherViewModel.updateUI(temp: weatherModel.tempatureString, cityName: weatherModel.cityName, conditionImageName: weatherModel.conditionName)
     }
     
+    func didFailWithError(error: Error) {
+        print(error)
+    }
     
     //MARK: - Setup Constraints
 

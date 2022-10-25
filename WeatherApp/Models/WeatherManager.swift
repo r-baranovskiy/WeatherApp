@@ -1,7 +1,13 @@
+protocol WeatherManagerProtocol: AnyObject {
+    func didUpdateWeather(_ weatherManager: WeatherManager, weatherModel: WeatherModel)
+    func didFailWithError(error: Error)
+}
 
 import Foundation
 
 struct WeatherManager {
+    
+    weak var delegate: WeatherManagerProtocol?
     
     private let apiKey = "ff68ae03099570aa5e32dfa96426ad4d"
     private let units = "metric"
@@ -17,25 +23,30 @@ struct WeatherManager {
         let session = URLSession(configuration: .default)
         let task = session.dataTask(with: url) { data, response, error in
             if error != nil {
-                print(error ?? "")
+                delegate?.didFailWithError(error: error!)
             } else {
                 if let safeData = data {
-                    parseJSON(weatherData: safeData)
+                    if let weather = self.parseJSON(weatherData: safeData) {
+                        DispatchQueue.main.async {
+                            delegate?.didUpdateWeather(self, weatherModel: weather)
+                        }
+                    }
                 }
             }
         }
         task.resume()
     }
     
-    private func parseJSON(weatherData: Data) {
+    private func parseJSON(weatherData: Data) -> WeatherModel? {
         let decoder = JSONDecoder()
         
         do {
             let decodedData = try decoder.decode(WeatherData.self, from: weatherData)
             let weather = WeatherModel(cityName: decodedData.name, cityConditionID: decodedData.weather[0].id, cityTemp: decodedData.main.temp)
-            print(weather.tempatureString)
+            return weather
         } catch let error {
-            print(error.localizedDescription)
+            delegate?.didFailWithError(error: error)
+            return nil
         }
     }
 }

@@ -16,9 +16,11 @@ struct ListProvider: PreviewProvider {
         }
     }
 }
+
 protocol WeatherAppViewModelProtocol: AnyObject {
     
     func userIsTyping(_ weatcherViewModel: WeatherAppViewModel ,text: String)
+    func locationButtonDidPressed()
 }
 
 class WeatherAppViewModel: UIView, UITextFieldDelegate {
@@ -42,7 +44,7 @@ class WeatherAppViewModel: UIView, UITextFieldDelegate {
     
     //MARK: - Containers
     
-    private var topContainer = UIView()
+    private var topContainer = UIStackView()
     
     //MARK: - Override
     
@@ -53,7 +55,7 @@ class WeatherAppViewModel: UIView, UITextFieldDelegate {
         setupMainWeatherAppView()
         setupMainConstraints()
         searchTextField.delegate = self
-        searchTextField.isHidden = true
+        searchTextField.isHidden = false
     }
     
     required init?(coder: NSCoder) {
@@ -64,6 +66,35 @@ class WeatherAppViewModel: UIView, UITextFieldDelegate {
         temperatureLabel.text = temp
         cityLabel.text = cityName
         conditionImageView.image = UIImage(systemName: conditionImageName)
+    }
+    
+    //MARK: - Delegate
+    
+    @objc private func locationButtonPressed() {
+        delegate?.locationButtonDidPressed()
+    }
+    
+    @objc private func searchButtonPressed() {
+        if searchTextField.text == "" {
+            searchTextField.isHidden = false
+        } else {
+            delegate?.userIsTyping(self, text: searchTextField.text ?? "")
+            searchTextField.text = ""
+            searchTextField.endEditing(true)
+            searchTextField.isHidden = true
+        }
+    }
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        delegate?.userIsTyping(self, text: searchTextField.text ?? "")
+        searchTextField.endEditing(true)
+        searchTextField.isHidden = true
+        return true
+    }
+    
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        searchTextField.endEditing(true)
+        searchTextField.text = nil
     }
     
     //MARK: - setup MainWeatherAppView
@@ -82,21 +113,25 @@ class WeatherAppViewModel: UIView, UITextFieldDelegate {
         let celsiusLabel = createView.createLabel(text: "ºC", textColor: .label, alignment: .left, fontSize: 100)
         celsiusLabel.font = .boldSystemFont(ofSize: 100)
         
-        topContainer.addView(conditionImageView)
-        topContainer.addView(celsiusLabel)
-        topContainer.addView(temperatureLabel)
+        let temperatureView = UIView()
+        temperatureView.addView(temperatureLabel)
+        let celciusView = UIView()
+        celciusView.addView(celsiusLabel)
+        
+        topContainer = UIStackView(subviews: [temperatureView, celciusView, conditionImageView], axis: .horizontal, spacing: 10, aligment: .center, distribution: .fillEqually)
         
         NSLayoutConstraint.activate([
-            temperatureLabel.leadingAnchor.constraint(equalTo: topContainer.leadingAnchor),
-            temperatureLabel.centerYAnchor.constraint(equalTo: topContainer.centerYAnchor),
             
-            celsiusLabel.centerYAnchor.constraint(equalTo: temperatureLabel.centerYAnchor),
-            celsiusLabel.leadingAnchor.constraint(equalTo: temperatureLabel.trailingAnchor, constant: 5),
+            temperatureLabel.topAnchor.constraint(equalTo: temperatureView.topAnchor),
+            temperatureLabel.bottomAnchor.constraint(equalTo: temperatureView.bottomAnchor),
+            temperatureLabel.leadingAnchor.constraint(equalTo: temperatureView.leadingAnchor),
+            temperatureLabel.trailingAnchor.constraint(equalTo: temperatureView.trailingAnchor),
             
-            conditionImageView.leadingAnchor.constraint(equalTo: celsiusLabel.trailingAnchor, constant: 5),
-            conditionImageView.trailingAnchor.constraint(equalTo: topContainer.trailingAnchor),
-            conditionImageView.topAnchor.constraint(equalTo: topContainer.topAnchor, constant: 30),
-            conditionImageView.bottomAnchor.constraint(equalTo: topContainer.bottomAnchor, constant: -30),
+            celsiusLabel.topAnchor.constraint(equalTo: celciusView.topAnchor),
+            celsiusLabel.bottomAnchor.constraint(equalTo: celciusView.bottomAnchor),
+            celsiusLabel.leadingAnchor.constraint(equalTo: celciusView.leadingAnchor),
+            celsiusLabel.trailingAnchor.constraint(equalTo: celciusView.trailingAnchor),
+            
             conditionImageView.widthAnchor.constraint(equalTo: conditionImageView.heightAnchor, multiplier: 1.2)
         ])
     }
@@ -132,44 +167,29 @@ class WeatherAppViewModel: UIView, UITextFieldDelegate {
             segmentedControl.topAnchor.constraint(equalTo: topContainer.bottomAnchor, constant: 20),
             segmentedControl.leadingAnchor.constraint(equalTo: mainWeatherAppView.leadingAnchor, constant: 50),
             segmentedControl.trailingAnchor.constraint(equalTo: mainWeatherAppView.trailingAnchor, constant: -50),
-            segmentedControl.heightAnchor.constraint(equalToConstant: 30)
+            segmentedControl.heightAnchor.constraint(equalToConstant: 30),
+            
         ])
-    }
-    
-    //MARK: - Delegate
-    
-    @objc private func searchButtonPressed() {
-        if searchTextField.text == "" {
-            searchTextField.isHidden = false
-        } else {
-            delegate?.userIsTyping(self, text: searchTextField.text ?? "")
-            searchTextField.text = ""
-            searchTextField.endEditing(true)
-            searchTextField.isHidden = true
-        }
-    }
-    
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        delegate?.userIsTyping(self, text: searchTextField.text ?? "")
-        searchTextField.endEditing(true)
-        searchTextField.isHidden = true
-        return true
-    }
-    
-    func textFieldDidEndEditing(_ textField: UITextField) {
-        searchTextField.endEditing(true)
-        searchTextField.text = nil
     }
     
     //MARK: - Setup UI Elements
     
     private func createUIElements() {
-        
+                
         locationButton.setBackgroundImage(UIImage(systemName: "location.circle.fill"), for: .normal)
         locationButton.tintColor = .label
+        locationButton.addTarget(self, action: #selector(locationButtonPressed), for: .touchUpInside)
+        
+        var spacerView: UIView {
+            let view = UIView()
+            view.frame = CGRect(x: 0, y: 0, width: 10, height: 10)
+            return view
+        }
         
         searchTextField = createView.createTextField(textAlignment: .justified, textColor: .label, fontSize: 25, placeholder: "  Enter any city", minFontSize: 12, tykeKeyboard: .default, tintColor: .systemGray)
         searchTextField.backgroundColor = .white
+        searchTextField.leftViewMode = .always
+        searchTextField.leftView = spacerView
         searchTextField.alpha = 0.5
         searchTextField.textColor = .darkGray
         searchTextField.borderStyle = .none
@@ -181,7 +201,7 @@ class WeatherAppViewModel: UIView, UITextFieldDelegate {
         searchButton.tintColor = .label
         searchButton.addTarget(self, action: #selector(searchButtonPressed), for: .touchUpInside)
         
-        cityLabel = createView.createLabel(text: "Molodechno", textColor: .label, alignment: .center, fontSize: 50)
+        cityLabel = createView.createLabel(text: "", textColor: .label, alignment: .center, fontSize: 50)
         cityLabel.font = .italicSystemFont(ofSize: 50)
         cityLabel.numberOfLines = 1
         cityLabel.adjustsFontSizeToFitWidth = true
@@ -190,7 +210,7 @@ class WeatherAppViewModel: UIView, UITextFieldDelegate {
         conditionImageView.image = UIImage(systemName: "cloud.sun.fill")
         conditionImageView.tintColor = .label
         
-        temperatureLabel = createView.createLabel(text: "21", textColor: .label, alignment: .right, fontSize: 80)
+        temperatureLabel = createView.createLabel(text: "", textColor: .label, alignment: .right, fontSize: 80)
         temperatureLabel.font = .boldSystemFont(ofSize: 80)
         temperatureLabel.adjustsFontSizeToFitWidth = true
         temperatureLabel.minimumScaleFactor = 0.3

@@ -4,6 +4,7 @@ protocol WeatherManagerProtocol: AnyObject {
 }
 
 import Foundation
+import CoreLocation
 
 struct WeatherManager {
     
@@ -14,6 +15,11 @@ struct WeatherManager {
         
     func fetchWeather(cityName: String) {
         let urlString = "https://api.openweathermap.org/data/2.5/weather?q=\(cityName)&lang=ru&units=\(units)&appid=\(apiKey)"
+        performRequest(urlString: urlString)
+    }
+    
+    func fetchWeather(latitude: CLLocationDegrees, longitude: CLLocationDegrees) {
+        let urlString = "https://api.openweathermap.org/data/2.5/weather?lat=\(latitude)&lon=\(longitude)&appid=\(apiKey)&lang=ru&units=\(units)"
         performRequest(urlString: urlString)
     }
     

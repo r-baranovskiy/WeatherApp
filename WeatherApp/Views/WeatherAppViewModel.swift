@@ -60,6 +60,12 @@ class WeatherAppViewModel: UIView, UITextFieldDelegate {
         fatalError("init(coder:) has not been implemented")
     }
     
+    func updateUI(temp: Double, cityName: String, conditionID: Int) {
+        temperatureLabel.text = String(format: "%.f", temp)
+        cityLabel.text = cityName
+        
+    }
+    
     //MARK: - setup MainWeatherAppView
     
     private func setupMainWeatherAppView() {
@@ -186,6 +192,8 @@ class WeatherAppViewModel: UIView, UITextFieldDelegate {
         
         temperatureLabel = createView.createLabel(text: "21", textColor: .label, alignment: .right, fontSize: 80)
         temperatureLabel.font = .boldSystemFont(ofSize: 80)
+        temperatureLabel.adjustsFontSizeToFitWidth = true
+        temperatureLabel.minimumScaleFactor = 0.3
         
         let itemsForSegmented = ["Today", "5 Days"]
         segmentedControl = UISegmentedControl(items: itemsForSegmented)

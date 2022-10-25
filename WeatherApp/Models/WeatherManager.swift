@@ -5,7 +5,7 @@ struct WeatherManager {
     
     private let apiKey = "ff68ae03099570aa5e32dfa96426ad4d"
     private let units = "metric"
-    
+        
     func fetchWeather(cityName: String) {
         let urlString = "https://api.openweathermap.org/data/2.5/weather?q=\(cityName)&lang=ru&units=\(units)&appid=\(apiKey)"
         performRequest(urlString: urlString)
@@ -29,6 +29,13 @@ struct WeatherManager {
     
     private func parseJSON(weatherData: Data) {
         let decoder = JSONDecoder()
+        
+        do {
+            let decodedData = try decoder.decode(WeatherData.self, from: weatherData)
+            let weather = WeatherModel(cityName: decodedData.name, cityConditionID: decodedData.weather[0].id, cityTemp: decodedData.main.temp)
+            print(weather.tempatureString)
+        } catch let error {
+            print(error.localizedDescription)
+        }
     }
-
 }
